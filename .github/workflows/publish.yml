@@ -6,6 +6,9 @@ name: publish
 on:
   push:
     tags: ["v*"]
+  # Déclenchement à la main aussi : la version publiée est celle du
+  # pyproject.toml du commit visé, tag ou pas.
+  workflow_dispatch:
 
 jobs:
   build:
