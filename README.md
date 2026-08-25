@@ -1,90 +1,90 @@
-🇬🇧 [English version](README.en.md)
+🇫🇷 [Version française](README.fr.md)
 
 # sldprt2xt
 
-Sort la géométrie d'un fichier SolidWorks. Sans SolidWorks.
+Gets the geometry out of a SolidWorks file. Without SolidWorks.
 
-`piece.SLDPRT` → `piece.x_t`, un fichier Parasolid.
-## Installer
+`part.SLDPRT` → `part.x_t`, a Parasolid file.
+## Install
 
 ```sh
 pip install sldprt2xt
 ```
 
-## Utiliser
+## Use
 
 ```sh
-sldprt2xt piece.SLDPRT
+sldprt2xt part.SLDPRT
 ```
 
-Ça écrit `piece.x_t` juste à côté. C'est tout.
+That writes `part.x_t` right next to it. That's all.
 
-Ailleurs :
+Somewhere else:
 
 ```sh
-sldprt2xt piece.SLDPRT -o sorties/
+sldprt2xt part.SLDPRT -o output/
 ```
 
-Plusieurs fichiers :
+Several files:
 
 ```sh
-sldprt2xt *.SLDPRT -o sorties/
+sldprt2xt *.SLDPRT -o output/
 ```
 
-Un dossier entier, sous-dossiers compris — l'arborescence est reproduite
-dans la sortie, et les verrous SolidWorks (`~$pièce.SLDPRT`) sont ignorés :
+A whole folder, subfolders included — the tree structure is mirrored in the
+output, and SolidWorks lock files (`~$part.SLDPRT`) are ignored:
 
 ```sh
-sldprt2xt mes_pieces/ -o sorties/
+sldprt2xt my_parts/ -o output/
 ```
 
-Dans du Python :
+From Python:
 
 ```python
 from sldprt2xt import to_x_t
 
-to_x_t("piece.SLDPRT")              # écrit piece.x_t
-to_x_t("piece.SLDPRT", "sorties/")  # ailleurs — le dossier est créé au besoin
+to_x_t("part.SLDPRT")             # writes part.x_t
+to_x_t("part.SLDPRT", "output/")  # elsewhere — the folder is created if needed
 ```
 
-Tout échec lève `ConversionError` (ou `SchemasNotFound`), avec un message qui
-dit quoi faire. L'écriture est atomique : jamais de fichier tronqué sous son
-nom final.
+Every failure raises `ConversionError` (or `SchemasNotFound`), with a message
+that says what to do. Writes are atomic: never a truncated file under its
+final name.
 
-## Les tables sont dedans
+## The tables are built in
 
-Un fichier Parasolid ne se lit pas sans une table qui dit quels champs porte
-chaque type de nœud. **Ce paquet énonce lui-même les faits de ces tables**
-(`schema_facts.py`) : toutes les versions de SolidWorks connues à sa
-publication — 2003 à 2026 — se convertissent sans rien d'autre.
+A Parasolid file cannot be read without a table saying which fields each node
+type carries. **This package states the facts of those tables itself**
+(`schema_facts.py`): every SolidWorks version known at its release — 2003
+through 2026 — converts with nothing else installed.
 
-Deux cas seulement où fournir quelque chose :
+Only two cases where you provide anything:
 
-- **une version de SolidWorks plus récente que ce paquet**, pour une pièce à
-  plusieurs corps. Trois sorties, du plus simple au plus manuel : mettre le
-  paquet à jour ; donner un `.x_t` multi-corps exporté par le même
-  SolidWorks (`--donor piece.x_t` — l'outil y apprend ce qui lui manque) ;
-  ou pointer `--schemas` vers le dossier `pschema` d'une installation.
-- **vos propres fichiers de schéma**, si vous préférez : un dossier déposé
-  prime toujours sur les tables intégrées (`--schemas`, ou la variable
-  `P_SCHEMA` que Parasolid lui-même consulte — une installation SolidWorks
-  locale est d'ailleurs trouvée toute seule).
+- **a SolidWorks version newer than this package**, for a multi-body part.
+  Three ways out, from simplest to most manual: update the package; hand over
+  a multi-body `.x_t` exported by the same SolidWorks (`--donor part.x_t` —
+  the tool learns what it is missing from it); or point `--schemas` at the
+  `pschema` folder of an installation.
+- **your own schema files**, if you prefer: a supplied folder always takes
+  precedence over the built-in tables (`--schemas`, or the `P_SCHEMA`
+  variable Parasolid itself consults — a local SolidWorks installation is
+  found on its own anyway).
 
-## Ce qui sort
+## What comes out
 
-Tous les corps de la pièce, avec leurs couleurs. La géométrie est **celle du
-fichier, recopiée** — rien n'est reconstruit, rien n'est approché.
+Every body in the part, with its colours. The geometry is **the file's own,
+transcribed** — nothing is rebuilt, nothing is approximated.
 
-## Ça marche sur quoi
+## What it works on
 
-Les `.SLDPRT` de SolidWorks 2003 à 2026, les deux générations de format de
-fichier. 
+`.SLDPRT` files from SolidWorks 2003 through 2026, both generations of the
+file format.
 
-Linux, macOS, Windows. Python 3.10 ou plus.
+Linux, macOS, Windows. Python 3.10 or later.
 
-## Licence
+## License
 
-AGPL-3.0. Voir [LICENSE](LICENSE).
+AGPL-3.0. See [LICENSE](LICENSE).
 
-Parasolid est une marque de Siemens Industry Software Inc., SolidWorks une
-marque de Dassault Systèmes. Ce projet n'est affilié ni à l'un ni à l'autre.
+Parasolid is a trademark of Siemens Industry Software Inc., SolidWorks a
+trademark of Dassault Systèmes. This project is affiliated with neither.
