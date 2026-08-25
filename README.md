@@ -73,15 +73,12 @@ Deux cas seulement où fournir quelque chose :
 Tous les corps de la pièce, avec leurs couleurs. La géométrie est **celle du
 fichier, recopiée** — rien n'est reconstruit, rien n'est approché.
 
-Ce qui ne sort pas : l'arbre de création, les cotes, les esquisses. Seulement
-la forme.
-
 ## Ça marche sur quoi
 
 Les `.SLDPRT` de SolidWorks 2003 à 2026, les deux générations de format de
-fichier. Testé sur 29 pièces : 27 passent.
+fichier. 
 
-Linux, macOS, Windows. Python 3.10 ou plus. Une seule dépendance.
+Linux, macOS, Windows. Python 3.10 ou plus.
 
 ## Licence
 
