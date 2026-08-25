@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sldprt2xt"
+version = "1.0.0"
+description = "Extraire la géométrie Parasolid (.x_t) d'un fichier SolidWorks (.SLDPRT), sans SolidWorks"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Emilien-Etadam" }]
+keywords = ["solidworks", "sldprt", "parasolid", "x_t", "cad", "convert"]
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: Manufacturing",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+]
+dependencies = ["olefile>=0.47"]
+
+[project.scripts]
+sldprt2xt = "sldprt2xt.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 96
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B", "UP", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]

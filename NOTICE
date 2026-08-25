@@ -1,0 +1,75 @@
+sldprt2xt — extraire la géométrie Parasolid d'un fichier SolidWorks
+
+Copyright (C) 2026 Emilien-Etadam
+Sous licence GNU Affero General Public License v3.0 only. Voir LICENSE.
+
+
+Provenance et synchronie
+------------------------
+
+Les modules carve.py, container.py, parasolid.py et le paquet xt/ sont des
+copies, identiques au bit près (en-tête de licence mis à part), de
+src/sldprt du dépôt openSW (https://github.com/Emilien-Etadam/openSW), du
+même auteur — où un test de synchronie les compare à chaque exécution de la
+suite. Les renvois « F-nn », « Q-nn » et « FORMAT.md » dans leurs docstrings
+visent le journal de laboratoire de ce dépôt-là : chaque numéro y est un fait
+mesuré, avec sa preuve. De même, un module cité mais absent d'ici
+(sldprt.occ, sldprt.detect) vit dans openSW.
+
+
+Format du conteneur SolidWorks
+------------------------------
+
+La compréhension du conteneur `.SLDPRT` s'appuie sur des travaux publics de
+rétro-ingénierie. Les faits sur un format ne sont pas protégeables ; le code
+qui les exprime l'est. Là où une implémentation a été éclairée par un projet
+tiers, ce projet est crédité ici.
+
+  cadmpeg (https://github.com/cadmpeg/cadmpeg)
+      Code sous Apache-2.0, documentation de format sous CC-BY-4.0.
+      Source de la trame du conteneur à blocs, des formes de cellule de cache
+      et de répertoire de queue, des noms de section à quartets permutés, de
+      l'agencement __ZLB, et de l'en-tête du flux Parasolid.
+
+  openswx (https://github.com/schwitters/openswx)
+      MIT. Description d'origine du conteneur moderne et de son marqueur.
+
+  blussyya/sldprt-format-research (https://github.com/blussyya/sldprt-format-research)
+      MIT. Méthodologie, et le résultat négatif que Contents/DisplayLists est
+      la tessellation d'affichage et non la B-rep.
+
+  CosmicFrontierLabs/solid-diff (https://github.com/CosmicFrontierLabs/solid-diff)
+      Aucune licence déclarée — consulté comme documentation seulement.
+      Aucun code repris.
+
+  Oblikovati (https://github.com/Oblikovati/Oblikovati)
+      GPL-2.0 — consulté comme documentation seulement. Aucun code repris.
+
+
+Format Parasolid XT
+-------------------
+
+La *Parasolid XT Format Reference* est publiée par Siemens Industry Software
+Inc. et librement redistribuée depuis des années. C'est la source du format de
+transmit.
+
+  akiselev/xt-parser (https://github.com/akiselev/xt-parser)
+      Transcription markdown intégrale de l'édition de juillet 2022, employée
+      comme copie de travail. Aucun code repris.
+
+
+Schémas Parasolid
+-----------------
+
+Aucun fichier de schéma Parasolid n'est distribué avec ce paquet. Les schémas
+sont livrés avec les logiciels Parasolid et relèvent de la licence de ces
+logiciels, pas de celle-ci. Voir le README, section « les tables de schéma ».
+
+
+Marques
+-------
+
+Parasolid est une marque de Siemens Industry Software Inc. SolidWorks est une
+marque de Dassault Systèmes. Ce projet n'est affilié à aucun des deux, n'est ni
+approuvé ni dérivé d'eux. Ces noms n'apparaissent que pour dire avec quoi le
+code interopère.
