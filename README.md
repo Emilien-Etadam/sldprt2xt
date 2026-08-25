@@ -1,3 +1,5 @@
+🇬🇧 [English version](README.en.md)
+
 # sldprt2xt
 
 Sort la géométrie d'un fichier SolidWorks. Sans SolidWorks.
