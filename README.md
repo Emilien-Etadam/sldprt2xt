@@ -2,9 +2,7 @@
 
 Sort la géométrie d'un fichier SolidWorks. Sans SolidWorks.
 
-`piece.SLDPRT` → `piece.x_t`, un fichier Parasolid que FreeCAD, Fusion, Rhino,
-Blender (add-on CAD), NX, Onshape et à peu près tout le reste savent ouvrir.
-
+`piece.SLDPRT` → `piece.x_t`, un fichier Parasolid.
 ## Installer
 
 ```sh
@@ -51,14 +49,12 @@ Tout échec lève `ConversionError` (ou `SchemasNotFound`), avec un message qui
 dit quoi faire. L'écriture est atomique : jamais de fichier tronqué sous son
 nom final.
 
-## Rien à installer d'autre : les tables sont dedans
+## Les tables sont dedans
 
 Un fichier Parasolid ne se lit pas sans une table qui dit quels champs porte
 chaque type de nœud. **Ce paquet énonce lui-même les faits de ces tables**
 (`schema_facts.py`) : toutes les versions de SolidWorks connues à sa
-publication — 2003 à 2026 — se convertissent sans rien d'autre. Mesuré : les
-29 pièces du corpus donnent, sans aucun fichier externe, une sortie identique
-au bit près à celle produite avec une installation SolidWorks complète.
+publication — 2003 à 2026 — se convertissent sans rien d'autre.
 
 Deux cas seulement où fournir quelque chose :
 
