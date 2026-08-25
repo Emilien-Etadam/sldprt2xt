@@ -160,6 +160,107 @@ def test_the_command_line_refuses_an_empty_folder(tmp_path: Path, capsys):
     assert "aucun fichier .SLDPRT" in capsys.readouterr().err
 
 
+def test_builtin_base_states_the_same_facts_as_a_deposited_file():
+    """La table intégrée doit dire exactement ce que dit le fichier.
+
+    C'est la garantie de la doctrine : on ré-énonce des faits, on n'en
+    invente pas. Comparaison valeur par valeur — les dataclasses des deux
+    origines partagent le module, mais on ne s'y fie pas.
+    """
+    from sldprt2xt.builtin import base_schema
+    from sldprt2xt.schemas import find_folder
+    from sldprt2xt.xt.schema import find_schema, load_schema
+
+    folder = find_folder(None)
+    if folder is None:
+        pytest.skip("aucun fichier de schéma déposé pour comparer")
+    deposited = find_schema(folder, "SCH_13006")
+    if deposited is None:
+        pytest.skip("sch_13006.s_t absent du dossier déposé")
+
+    facts, file = base_schema(), load_schema(deposited)
+
+    def row(field):
+        return (field.name, field.type, field.transmitted, field.ptr_class, field.n_elts)
+
+    assert facts.key == file.key
+    assert set(facts.nodes) == set(file.nodes)
+    for node_type, mine in facts.nodes.items():
+        theirs = file.nodes[node_type]
+        assert (mine.name, mine.transmitted, mine.variable) == (
+            theirs.name,
+            theirs.transmitted,
+            theirs.variable,
+        ), node_type
+        assert [row(f) for f in mine.fields] == [row(f) for f in theirs.fields], (
+            node_type
+        )
+
+
+@pytest.mark.skipif(not parts(), reason="SLDPRT2XT_CORPUS absent ou vide")
+def test_a_donor_x_t_stands_in_for_an_unknown_version(tmp_path: Path, monkeypatch):
+    """La sortie pour une version plus récente que les tables.
+
+    On masque la table, on donne un .x_t multi-corps du même SolidWorks, et
+    le résultat doit être celui que la table aurait produit — au bit près,
+    date exclue. Les fichiers déposés sont neutralisés aussi : un schéma de
+    version trouvé sur la machine rendrait la « version inconnue » connue.
+    """
+    import hashlib
+    import re
+
+    import sldprt2xt.builtin as builtin
+    import sldprt2xt.convert
+    import sldprt2xt.schema_facts as facts
+
+    monkeypatch.setattr(sldprt2xt.convert, "find_folder", lambda explicit=None: None)
+
+    part = next((p for p in parts() if "cylindre" in p.stem or "fermoir" in p.stem), None)
+    donor = next(
+        (p for p in (CORPUS or Path(".")).glob("*.x_t") if "fermoir" in p.stem.lower()),
+        None,
+    )
+    if part is None or donor is None:
+        pytest.skip("il faut une pièce multi-corps et un .x_t donneur dans le corpus")
+
+    def digest(path):
+        text = re.sub(r"DATE=[^;]*;", "DATE=;", path.read_text(encoding="latin-1"))
+        return hashlib.sha256(text.encode("latin-1")).hexdigest()
+
+    try:
+        straight = to_x_t(part, tmp_path / "table")
+    except ConversionError as failure:
+        pytest.skip(str(failure).splitlines()[0])
+
+    saved = dict(facts.ENVELOPE_BY_VERSION)
+    builtin.envelope_for.cache_clear()
+    facts.ENVELOPE_BY_VERSION.clear()
+    try:
+        with pytest.raises(ConversionError, match="plus récent"):
+            to_x_t(part, tmp_path / "sans-rien")
+        donated = to_x_t(part, tmp_path / "donneur", donor=donor)
+    finally:
+        facts.ENVELOPE_BY_VERSION.update(saved)
+        builtin.envelope_for.cache_clear()
+
+    assert digest(donated) == digest(straight)
+
+
+@pytest.mark.skipif(not parts(), reason="SLDPRT2XT_CORPUS absent ou vide")
+def test_a_donor_without_an_assembly_is_refused():
+    """Un donneur mono-corps nu n'apprend rien : le dire, pas le deviner."""
+    from sldprt2xt.builtin import envelope_from_x_t
+
+    bare = next(
+        (p for p in (CORPUS or Path(".")).glob("*.x_t") if p.stem in ("cube", "cylinder")),
+        None,
+    )
+    if bare is None:
+        pytest.skip("pas de .x_t mono-corps nu dans le corpus")
+    with pytest.raises(Exception, match="donneur"):
+        envelope_from_x_t(bare)
+
+
 def test_detect_container_still_names_both_envelopes():
     """La détection sur octets reste appelable seule — et dit ce qu'elle voit."""
     assert detect_container(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\0" * 64) == "cfb"

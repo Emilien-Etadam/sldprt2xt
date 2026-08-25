@@ -12,7 +12,7 @@
 from .convert import ConversionError, bodies_in, to_x_t
 from .schemas import SchemasNotFound, find_folder
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __all__ = [
     "ConversionError",
     "SchemasNotFound",

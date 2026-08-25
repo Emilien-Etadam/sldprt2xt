@@ -35,11 +35,14 @@ class SchemasNotFound(Exception):
 
 
 @cache
-def find_folder(explicit: str | Path | None = None) -> Path:
-    """Le dossier de schémas à utiliser.
+def find_folder(explicit: str | Path | None = None) -> Path | None:
+    """Le dossier de schémas à utiliser — ou ``None``, et ce n'est pas un échec.
 
     Ordre : ce qui est passé en argument, puis les variables d'environnement,
-    puis les emplacements habituels d'installation.
+    puis les emplacements habituels d'installation. Rien trouvé rend ``None``
+    et le paquet continue sur ses tables intégrées (:mod:`sldprt2xt.builtin`) ;
+    un dossier **explicitement demandé** et vide, lui, lève — c'est une erreur
+    de l'utilisateur, pas une absence.
 
     En cache : un lot de mille pièces valide le dossier une fois, pas mille —
     la validation parcourt tout le dossier. Conséquence assumée : déposer des
@@ -62,7 +65,7 @@ def find_folder(explicit: str | Path | None = None) -> Path:
             if _has_schemas(path):
                 return path
 
-    raise SchemasNotFound(HOW_TO_GET_THEM)
+    return None
 
 
 def _expand(pattern: str) -> list[Path]:
@@ -98,11 +101,12 @@ def _has_schemas(folder: Path) -> bool:
         return False
 
 
+#: Où prendre un fichier de schéma quand il en faut vraiment un — c'est-à-dire
+#: pour l'enveloppe multi-corps d'une version plus récente que les tables
+#: intégrées, sans ``.x_t`` donneur sous la main.
 HOW_TO_GET_THEM = """\
-Tables de schéma Parasolid introuvables.
-
-sldprt2xt en a besoin pour lire la géométrie. Elles sont livrées avec les
-logiciels Parasolid ; prenez celles que vous avez déjà :
+Elles sont livrées avec les logiciels Parasolid ; prenez celles que vous avez
+déjà :
 
   • SOLIDWORKS    C:\\Program Files\\SOLIDWORKS Corp\\SOLIDWORKS\\data\\pschema
   • Plasticity    le dossier parasolid-schema de son installation

@@ -3,6 +3,12 @@
 
 """Un `.SLDPRT` en entrée, un `.x_t` en sortie.
 
+Les schémas se résolvent en échelle, du plus autoritaire au plus autonome :
+un fichier ``sch_*.s_t`` déposé prime, les tables intégrées du paquet
+(:mod:`sldprt2xt.builtin`) prennent le relais, et un ``.x_t`` donneur couvre
+une version plus récente qu'elles. Sans rien d'installé ni de fourni, tout
+fichier connu des tables se convertit quand même.
+
 Tout échec de conversion sort d'ici en :class:`ConversionError` — c'est le
 contrat : un appelant qui attrape ``ConversionError`` (et
 :class:`~sldprt2xt.schemas.SchemasNotFound`) a tout attrapé.
@@ -14,11 +20,12 @@ import os
 from pathlib import Path
 from typing import NamedTuple
 
+from .builtin import base_schema, envelope_for, envelope_from_x_t
 from .container import open_container
 from .parasolid import is_partition_stream, main_partition, to_part_transmit
-from .schemas import find_folder
+from .schemas import HOW_TO_GET_THEM, find_folder
 from .xt.binary import parse_nodes
-from .xt.schema import SchemaError, resolve_schemas
+from .xt.schema import find_schema, load_schema
 
 #: Nom tronqué à cette longueur dans l'en-tête du fichier écrit.
 MAX_NAME = 40
@@ -38,7 +45,7 @@ class _Decoded(NamedTuple):
     #: Le schéma de la version du fichier, ou ``None`` s'il n'est pas déposé.
     version: object
     header: dict
-    folder: Path
+    folder: Path | None
 
 
 def bodies_in(path: str | Path, *, schemas: str | Path | None = None) -> int:
@@ -57,26 +64,44 @@ def to_x_t(
     destination: str | Path | None = None,
     *,
     schemas: str | Path | None = None,
+    donor: str | Path | None = None,
 ) -> Path:
     """Écrire le Parasolid de *path* et rendre le chemin du fichier écrit.
 
     *destination* est un **dossier** — qu'il existe déjà ou non — sauf s'il se
     termine par ``.x_t``, auquel cas c'est le fichier à écrire. Par défaut, le
     ``.x_t`` se pose à côté de la pièce.
+
+    *donor* est un ``.x_t`` multi-corps exporté par le même SolidWorks : ses
+    dispositions d'enveloppe servent quand la version du fichier est plus
+    récente que les tables intégrées et qu'aucun schéma n'est déposé.
     """
     source = Path(path)
     out = _destination(source, destination)
     decoded = _decode(source, find_folder(schemas))
 
     bodies = sum(1 for node in decoded.nodes if node.name == "BODY")
-    if decoded.version is None and bodies > 1:
+    # L'enveloppe se résout dès qu'une source la donne, corps unique compris :
+    # l'envelopper est mesuré sûr (Q-18), et la sortie reste alors identique
+    # au bit près quelle que soit la source des schémas. Seul le multi-corps
+    # en fait une exigence.
+    envelope = decoded.version or envelope_for(decoded.transmit.version_schema)
+    if envelope is None and donor is not None:
+        try:
+            envelope = envelope_from_x_t(donor)
+        except Exception as failure:
+            raise ConversionError(
+                f"donneur inutilisable : {failure}"
+            ) from failure
+    if envelope is None and bodies > 1:
         raise ConversionError(
             f"cette pièce porte {bodies} corps, et leur enveloppe ASSEMBLY "
-            f"exige le schéma de sa version — sch_"
-            f"{decoded.transmit.version_schema}.s_t, absent de "
-            f"{decoded.folder}. Prenez-le dans l'installation qui a produit "
-            "le fichier ; un schéma voisin ne convient pas. (Une pièce d'un "
-            "seul corps s'écrit sans.)"
+            f"vient du schéma de sa version — sch_"
+            f"{decoded.transmit.version_schema}, plus récent que les tables "
+            "intégrées de ce paquet. Trois sorties : mettre le paquet à "
+            "jour ; donner un .x_t multi-corps exporté par le même "
+            "SolidWorks (donor=/--donor) ; ou déposer le fichier de schéma "
+            f"(--schemas).\n{HOW_TO_GET_THEM}"
         )
 
     try:
@@ -85,7 +110,7 @@ def to_x_t(
             decoded.nodes,
             decoded.base,
             decoded.layouts,
-            decoded.version,
+            envelope,
             key=_safe_key(source.stem),
             max_node_types=decoded.header.get("max_node_types"),
         )
@@ -141,8 +166,14 @@ def _safe_key(stem: str) -> str:
     return "".join(kept).strip() or "part"
 
 
-def _decode(source: Path, folder: Path) -> _Decoded:
-    """Les nœuds du fichier, et de quoi les réécrire."""
+def _decode(source: Path, folder: Path | None) -> _Decoded:
+    """Les nœuds du fichier, et de quoi les réécrire.
+
+    Le schéma de base vient d'un fichier déposé s'il y en a un — il prime —
+    et de la table intégrée sinon. Le schéma de la version n'est chargé que
+    depuis un fichier : intégré, il n'existe que sous forme d'enveloppe, et
+    c'est :func:`to_x_t` qui la résout au moment d'écrire.
+    """
     try:
         transmit = main_partition(open_container(source, is_partition_stream))
     except Exception as failure:
@@ -150,14 +181,24 @@ def _decode(source: Path, folder: Path) -> _Decoded:
     if transmit is None:
         raise ConversionError("pas de géométrie Parasolid dans ce fichier")
 
-    try:
-        base, version = resolve_schemas(
-            folder, transmit.base_schema, transmit.schema_key
-        )
-    except SchemaError as missing:
+    base_file = (
+        find_schema(folder, f"SCH_{transmit.base_schema}") if folder else None
+    )
+    if base_file is not None:
+        base = load_schema(base_file)
+    elif transmit.base_schema == "13006":
+        base = base_schema()
+    else:
         raise ConversionError(
-            f"{missing} — voir le README, section « les tables de schéma »"
-        ) from missing
+            f"ce fichier référence le schéma de base {transmit.base_schema}, "
+            "que les tables intégrées ne portent pas (elles énoncent 13006, "
+            "celui de tous les SolidWorks observés) — déposez "
+            f"sch_{transmit.base_schema}.s_t (--schemas)"
+        )
+    version_file = (
+        find_schema(folder, transmit.version_schema) if folder else None
+    )
+    version = load_schema(version_file) if version_file else None
 
     header: dict = {}
     try:

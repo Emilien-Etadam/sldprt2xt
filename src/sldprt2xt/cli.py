@@ -81,6 +81,13 @@ def main(argv: list[str] | None = None) -> int:
         "--schemas", type=Path, metavar="DOSSIER", help="dossier des schemas Parasolid"
     )
     parser.add_argument(
+        "--donor",
+        type=Path,
+        metavar="FICHIER.x_t",
+        help="un .x_t multi-corps exporte par le meme SolidWorks, si la "
+        "version du fichier est plus recente que les tables integrees",
+    )
+    parser.add_argument(
         "-q", "--quiet", action="store_true", help="ne rien dire si tout va bien"
     )
     args = parser.parse_args(argv)
@@ -110,7 +117,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
         started = time.monotonic()
         try:
-            result = to_x_t(part, destination, schemas=folder)
+            result = to_x_t(part, destination, schemas=folder, donor=args.donor)
         except ConversionError as failure:
             print(f"{part.name} : {failure}", file=sys.stderr)
             failed += 1

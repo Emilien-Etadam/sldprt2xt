@@ -51,45 +51,26 @@ Tout échec lève `ConversionError` (ou `SchemasNotFound`), avec un message qui
 dit quoi faire. L'écriture est atomique : jamais de fichier tronqué sous son
 nom final.
 
-## Une chose à savoir : les tables de schéma
+## Rien à installer d'autre : les tables sont dedans
 
-Un fichier Parasolid ne se lit pas sans sa table de correspondance. Ces tables
-sont livrées avec les logiciels Parasolid — elles ne sont pas à nous, donc
-elles ne sont pas dans ce paquet.
+Un fichier Parasolid ne se lit pas sans une table qui dit quels champs porte
+chaque type de nœud. **Ce paquet énonce lui-même les faits de ces tables**
+(`schema_facts.py`) : toutes les versions de SolidWorks connues à sa
+publication — 2003 à 2026 — se convertissent sans rien d'autre. Mesuré : les
+29 pièces du corpus donnent, sans aucun fichier externe, une sortie identique
+au bit près à celle produite avec une installation SolidWorks complète.
 
-**Si SolidWorks est installé sur la machine, l'outil les trouve tout seul et
-vous n'avez rien à faire.**
+Deux cas seulement où fournir quelque chose :
 
-Sinon, prenez-les où vous les avez :
-
-| d'où | chemin |
-|---|---|
-| SOLIDWORKS | `C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\data\pschema` |
-| Plasticity | le dossier `parasolid-schema` de son installation |
-| public | [ThraceShah/PKToy](https://github.com/ThraceShah/PKToy), dossier `PKToy.Lib/pschema` |
-
-Puis :
-
-```sh
-sldprt2xt piece.SLDPRT --schemas /chemin/vers/pschema
-```
-
-ou une bonne fois pour toutes :
-
-```sh
-export P_SCHEMA=/chemin/vers/pschema
-```
-
-Ce qu'il faut exactement dépend de la pièce :
-
-- **une pièce d'un seul corps** se convertit avec la seule table de base
-  (`sch_13006`, dans le jeu public) — quelle que soit la version de
-  SolidWorks qui l'a écrite ;
-- **une pièce de plusieurs corps** exige en plus la table de la version du
-  fichier : le format impose de regrouper les corps sous une enveloppe, et la
-  forme de cette enveloppe vient de cette table-là. Le jeu public les couvre
-  jusqu'à SolidWorks 2021 environ ; au-delà, prenez la table livrée avec le
-  logiciel qui a écrit le fichier. Le message d'erreur le dit le moment venu.
+- **une version de SolidWorks plus récente que ce paquet**, pour une pièce à
+  plusieurs corps. Trois sorties, du plus simple au plus manuel : mettre le
+  paquet à jour ; donner un `.x_t` multi-corps exporté par le même
+  SolidWorks (`--donor piece.x_t` — l'outil y apprend ce qui lui manque) ;
+  ou pointer `--schemas` vers le dossier `pschema` d'une installation.
+- **vos propres fichiers de schéma**, si vous préférez : un dossier déposé
+  prime toujours sur les tables intégrées (`--schemas`, ou la variable
+  `P_SCHEMA` que Parasolid lui-même consulte — une installation SolidWorks
+  locale est d'ailleurs trouvée toute seule).
 
 ## Ce qui sort
 

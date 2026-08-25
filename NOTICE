@@ -61,9 +61,18 @@ transmit.
 Schémas Parasolid
 -----------------
 
-Aucun fichier de schéma Parasolid n'est distribué avec ce paquet. Les schémas
-sont livrés avec les logiciels Parasolid et relèvent de la licence de ces
-logiciels, pas de celle-ci. Voir le README, section « les tables de schéma ».
+Aucun fichier de schéma Parasolid n'est distribué avec ce paquet. Les fichiers
+de schéma sont livrés avec les logiciels Parasolid et relèvent de la licence
+de ces logiciels, pas de celle-ci.
+
+Le module `schema_facts.py` n'est pas un de ces fichiers : c'est du code du
+projet qui énonce des FAITS sur le format XT — quels champs porte chaque type
+de nœud, sous quel nom, quel type, quelle arité. La position de ce projet,
+appliquée partout ailleurs et énoncée en tête de ce NOTICE, est que les faits
+d'un format ne sont pas protégeables ; seul le code qui les exprime l'est, et
+cette expression-ci est la nôtre : générée par notre outillage, sans la prose
+des fichiers d'origine, et vérifiée équivalente par la suite de tests. Les
+fichiers de schéma restent reconnus, et prioritaires quand ils sont déposés.
 
 
 Marques
