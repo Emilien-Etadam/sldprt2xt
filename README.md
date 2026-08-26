@@ -75,6 +75,17 @@ Only two cases where you provide anything:
 Every body in the part, with its colours. The geometry is **the file's own,
 transcribed** — nothing is rebuilt, nothing is approximated.
 
+## What opens the `.x_t`
+
+Software built on the Parasolid kernel: SolidWorks, NX, Solid Edge,
+Fusion 360, Onshape, Rhino, Plasticity…
+
+**Not FreeCAD** — nor anything built on OpenCASCADE. There is no free
+Parasolid reader; that is precisely why this tool exists. The open-source
+chain needs STEP, and producing STEP is a different job — rebuilding the
+geometry in a kernel rather than transcribing it — which this tool
+deliberately does not do.
+
 ## What it works on
 
 `.SLDPRT` files from SolidWorks 2003 through 2026, both generations of the

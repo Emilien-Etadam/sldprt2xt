@@ -75,6 +75,17 @@ Deux cas seulement où fournir quelque chose :
 Tous les corps de la pièce, avec leurs couleurs. La géométrie est **celle du
 fichier, recopiée** — rien n'est reconstruit, rien n'est approché.
 
+## Qui ouvre le `.x_t`
+
+Les logiciels bâtis sur le noyau Parasolid : SolidWorks, NX, Solid Edge,
+Fusion 360, Onshape, Rhino, Plasticity…
+
+**Pas FreeCAD** — ni rien de construit sur OpenCASCADE. Il n'existe aucun
+lecteur Parasolid libre ; c'est précisément la raison d'être de cet outil.
+Pour la chaîne libre, il faut du STEP, et produire du STEP est un autre
+métier — reconstruire la géométrie dans un noyau, pas la recopier — que cet
+outil ne fait volontairement pas.
+
 ## Ça marche sur quoi
 
 Les `.SLDPRT` de SolidWorks 2003 à 2026, les deux générations de format de
